@@ -60,6 +60,12 @@ func RecordErrorAndEndSpan(span trace.Span, err error) {
 	}
 }
 
+func RecordError(span trace.Span, err error) {
+	if span != nil {
+		span.RecordError(err)
+	}
+}
+
 func EndSpan(span trace.Span) {
 	if span != nil {
 		span.End()
