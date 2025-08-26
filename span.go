@@ -52,3 +52,16 @@ func GetSpanByDgContext(ctx *dgctx.DgContext) trace.Span {
 
 	return trace.SpanFromContext(ctx.GetInnerContext())
 }
+
+func RecordErrorAndEndSpan(span trace.Span, err error) {
+	if span != nil {
+		span.RecordError(err)
+		span.End()
+	}
+}
+
+func EndSpan(span trace.Span) {
+	if span != nil {
+		span.End()
+	}
+}

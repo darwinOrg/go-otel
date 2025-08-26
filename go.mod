@@ -3,7 +3,7 @@ module github.com/darwinOrg/go-otel
 go 1.23.1
 
 require (
-	github.com/darwinOrg/go-common v0.2.7
+	github.com/darwinOrg/go-common v0.2.8
 	go.opentelemetry.io/otel v1.37.0
 	go.opentelemetry.io/otel/exporters/otlp/otlptrace v1.37.0
 	go.opentelemetry.io/otel/sdk v1.37.0
