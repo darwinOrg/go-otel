@@ -13,7 +13,10 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-var Tracer trace.Tracer
+var (
+	Tracer            trace.Tracer
+	tracerServiceName string
+)
 
 // InitTracer 初始化 OpenTelemetry 并配置导出
 func InitTracer(serviceName string, exporter *otlptrace.Exporter) (func(), error) {
@@ -33,6 +36,7 @@ func InitTracer(serviceName string, exporter *otlptrace.Exporter) (func(), error
 	))
 
 	Tracer = otel.Tracer(serviceName)
+	tracerServiceName = serviceName
 
 	// 返回一个关闭函数，用于优雅关闭Tracer
 	return func() {
@@ -40,4 +44,8 @@ func InitTracer(serviceName string, exporter *otlptrace.Exporter) (func(), error
 			log.Printf("TracerProvider Shutdown Error: %v", err)
 		}
 	}, nil
+}
+
+func GetTracerServiceName() string {
+	return tracerServiceName
 }
