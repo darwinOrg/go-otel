@@ -13,7 +13,9 @@ var DefaultOtelHttpSpanNameFormatterOption = otelhttp.WithSpanNameFormatter(func
 	return fmt.Sprintf("Call: %s%s %s", req.Host, req.URL.Path, req.Method)
 })
 
-var DefaultMetricAttributesFnOption = otelhttp.WithMetricAttributesFn(func(req *http.Request) []attribute.KeyValue {
+var DefaultMetricAttributesFnOption = otelhttp.WithMetricAttributesFn(ExtractHttpRequestAttributes)
+
+func ExtractHttpRequestAttributes(req *http.Request) []attribute.KeyValue {
 	attrs := []attribute.KeyValue{
 		attribute.String("http.method", req.Method),
 		attribute.String("http.url", req.URL.String()),
@@ -55,14 +57,14 @@ var DefaultMetricAttributesFnOption = otelhttp.WithMetricAttributesFn(func(req *
 	}
 
 	return attrs
-})
+}
 
 func NewOtelHttpTransport(rt http.RoundTripper) http.RoundTripper {
-	return otelhttp.NewTransport(rt, DefaultOtelHttpSpanNameFormatterOption, DefaultMetricAttributesFnOption)
+	return otelhttp.NewTransport(rt, DefaultOtelHttpSpanNameFormatterOption)
 }
 
 func NewOtelHttpTransportWithServiceName(rt http.RoundTripper, serviceName string) http.RoundTripper {
 	return otelhttp.NewTransport(rt, otelhttp.WithSpanNameFormatter(func(operation string, req *http.Request) string {
 		return fmt.Sprintf("%s: %s %s", serviceName, req.URL.Path, req.Method)
-	}), DefaultMetricAttributesFnOption)
+	}))
 }
