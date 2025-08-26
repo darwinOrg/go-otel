@@ -8,7 +8,7 @@ import (
 )
 
 var DefaultOtelHttpSpanNameFormatterOption = otelhttp.WithSpanNameFormatter(func(operation string, req *http.Request) string {
-	return fmt.Sprintf("Call: %s %s", req.URL.String(), req.Method)
+	return fmt.Sprintf("Call: %s%s %s", req.Host, req.URL.Path, req.Method)
 })
 
 func NewOtelHttpTransport(rt http.RoundTripper) http.RoundTripper {

@@ -10,38 +10,18 @@ import (
 	"go.opentelemetry.io/otel/trace"
 )
 
-func DoActionWithinNewSpan(ctx *dgctx.DgContext, spanName string, opts []trace.SpanStartOption, action func(c context.Context, span trace.Span)) {
+func DoActionWithinNewSpan(ctx context.Context, spanName string, opts []trace.SpanStartOption, action func(ctx context.Context, span trace.Span)) {
 	if Tracer == nil {
 		return
-	}
-
-	var c context.Context
-	if ctx.GetInnerContext() != nil {
-		c = ctx.GetInnerContext()
-	} else {
-		c = context.Background()
 	}
 
 	if opts == nil {
 		opts = []trace.SpanStartOption{}
 	}
-	nc, span := Tracer.Start(c, spanName, opts...)
+	ctx, span := Tracer.Start(ctx, spanName, opts...)
 	defer span.End()
 
-	action(nc, span)
-}
-
-func GetSpanByDgContext(ctx *dgctx.DgContext) trace.Span {
-	if ctx.GetInnerContext() == nil {
-		return nil
-	}
-
-	spanContext := trace.SpanContextFromContext(ctx.GetInnerContext())
-	if !spanContext.IsValid() || !spanContext.HasSpanID() {
-		return nil
-	}
-
-	return trace.SpanFromContext(ctx.GetInnerContext())
+	action(ctx, span)
 }
 
 func SetSpanAttributesByDgContext(ctx *dgctx.DgContext) {
@@ -95,13 +75,21 @@ func SetSpanAttributesByDgContext(ctx *dgctx.DgContext) {
 	}
 }
 
-func SetSpanAttributesByMap(ctx *dgctx.DgContext, mp map[string]string) {
-	if len(mp) == 0 {
-		return
+func GetSpanByDgContext(ctx *dgctx.DgContext) trace.Span {
+	if ctx.GetInnerContext() == nil {
+		return nil
 	}
 
-	span := GetSpanByDgContext(ctx)
-	if span == nil {
+	spanContext := trace.SpanContextFromContext(ctx.GetInnerContext())
+	if !spanContext.IsValid() || !spanContext.HasSpanID() {
+		return nil
+	}
+
+	return trace.SpanFromContext(ctx.GetInnerContext())
+}
+
+func SetSpanAttributesByMap(span trace.Span, mp map[string]string) {
+	if span == nil || len(mp) == 0 {
 		return
 	}
 
