@@ -81,7 +81,7 @@ func GetSpanByDgContext(ctx *dgctx.DgContext) trace.Span {
 	}
 
 	spanContext := trace.SpanContextFromContext(ctx.GetInnerContext())
-	if !spanContext.IsValid() || !spanContext.HasSpanID() {
+	if !spanContext.IsValid() {
 		return nil
 	}
 
