@@ -5,7 +5,6 @@ import (
 	"log"
 
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -19,7 +18,7 @@ var (
 )
 
 // InitTracer 初始化 OpenTelemetry 并配置导出
-func InitTracer(serviceName string, exporter *otlptrace.Exporter) (func(), error) {
+func InitTracer(serviceName string, exporter sdktrace.SpanExporter) (func(), error) {
 	tp := sdktrace.NewTracerProvider(
 		sdktrace.WithBatcher(exporter),
 		sdktrace.WithResource(resource.NewWithAttributes(
