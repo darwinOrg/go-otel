@@ -12,7 +12,8 @@ import (
 )
 
 func TestTracer(t *testing.T) {
-	shutdown := InitTracer("test-service", "", "")
+	ctx := context.Background()
+	shutdown := InitTracer(ctx, "test-service", NewHTTPExporter(ctx, "localhost:4318", ""))
 	defer shutdown()
 
 	for i := 0; i < 10; i++ {

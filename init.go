@@ -21,10 +21,8 @@ var (
 	tracerServiceName string
 )
 
-func InitTracer(serviceName, httpEndpoint, httpUrlPath string) func() {
-	ctx := context.Background()
-	traceExporter := NewHTTPExporter(ctx, httpEndpoint, httpUrlPath)
-	batchSpanProcessor := sdktrace.NewBatchSpanProcessor(traceExporter)
+func InitTracer(ctx context.Context, serviceName string, exporter sdktrace.SpanExporter) func() {
+	batchSpanProcessor := sdktrace.NewBatchSpanProcessor(exporter)
 	otelResource := NewResource(ctx, serviceName)
 	traceProvider := sdktrace.NewTracerProvider(
 		sdktrace.WithSampler(sdktrace.AlwaysSample()),
@@ -39,8 +37,8 @@ func InitTracer(serviceName, httpEndpoint, httpUrlPath string) func() {
 	return func() {
 		cxt, cancel := context.WithTimeout(ctx, time.Second)
 		defer cancel()
-		if err := traceExporter.Shutdown(cxt); err != nil {
-			log.Printf("traceExporter Shutdown Error: %v", err)
+		if err := traceProvider.Shutdown(cxt); err != nil {
+			log.Printf("traceProvider shutdown error: %v", err)
 			otel.Handle(err)
 		}
 	}
@@ -50,7 +48,6 @@ func NewResource(ctx context.Context, serviceName string) *resource.Resource {
 	r, err := resource.New(ctx,
 		resource.WithAttributes(
 			semconv.ServiceNameKey.String(serviceName),
-			semconv.DeploymentEnvironmentKey.String(dgsys.GetProfile()),
 			semconv.HostNameKey.String(dgsys.GetHostName()),
 		),
 	)
