@@ -23,7 +23,8 @@ var (
 
 func InitTracer(serviceName, httpEndpoint, httpUrlPath string) func() {
 	ctx := context.Background()
-	traceExporter, batchSpanProcessor := NewHTTPExporterAndSpanProcessor(ctx, httpEndpoint, httpUrlPath)
+	traceExporter := NewHTTPExporter(ctx, httpEndpoint, httpUrlPath)
+	batchSpanProcessor := sdktrace.NewBatchSpanProcessor(traceExporter)
 	otelResource := NewResource(ctx, serviceName)
 	traceProvider := sdktrace.NewTracerProvider(
 		sdktrace.WithSampler(sdktrace.AlwaysSample()),
@@ -65,7 +66,7 @@ func NewResource(ctx context.Context, serviceName string) *resource.Resource {
 	return r
 }
 
-func NewHTTPExporterAndSpanProcessor(ctx context.Context, httpEndpoint, httpUrlPath string) (sdktrace.SpanExporter, sdktrace.SpanProcessor) {
+func NewHTTPExporter(ctx context.Context, httpEndpoint, httpUrlPath string) *otlptrace.Exporter {
 	traceExporter, err := otlptrace.New(ctx, otlptracehttp.NewClient(
 		otlptracehttp.WithEndpoint(httpEndpoint),
 		otlptracehttp.WithURLPath(httpUrlPath),
@@ -75,8 +76,7 @@ func NewHTTPExporterAndSpanProcessor(ctx context.Context, httpEndpoint, httpUrlP
 		log.Fatalf("%s: %v", "Failed to create the OpenTelemetry trace exporter", err)
 	}
 
-	batchSpanProcessor := sdktrace.NewBatchSpanProcessor(traceExporter)
-	return traceExporter, batchSpanProcessor
+	return traceExporter
 }
 
 func GetTracerServiceName() string {
