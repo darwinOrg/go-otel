@@ -47,12 +47,7 @@ func InitTracer(serviceName, httpEndpoint, httpUrlPath string) func() {
 }
 
 func NewResource(ctx context.Context, serviceName string) *resource.Resource {
-	r, err := resource.New(
-		ctx,
-		resource.WithFromEnv(),
-		resource.WithProcess(),
-		resource.WithTelemetrySDK(),
-		resource.WithHost(),
+	r, err := resource.New(ctx,
 		resource.WithAttributes(
 			semconv.ServiceNameKey.String(serviceName),
 			semconv.DeploymentEnvironmentKey.String(dgsys.GetProfile()),
