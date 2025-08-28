@@ -49,8 +49,12 @@ func TraceIdHandler() gin.HandlerFunc {
 	}
 }
 
-func TracerHandler(serviceName string) gin.HandlerFunc {
-	return otelgin.Middleware(serviceName, otelgin.WithSpanNameFormatter(func(c *gin.Context) string {
+func TracerHandler() gin.HandlerFunc {
+	if tracerServiceName == "" {
+		tracerServiceName = "gin-server"
+	}
+
+	return otelgin.Middleware(tracerServiceName, otelgin.WithSpanNameFormatter(func(c *gin.Context) string {
 		return c.Request.URL.Path
 	}))
 }
