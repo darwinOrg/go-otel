@@ -3,10 +3,18 @@ package dgotel
 import (
 	"github.com/darwinOrg/go-common/constants"
 	"github.com/darwinOrg/go-web/utils"
+	"github.com/darwinOrg/go-web/wrapper"
 	"github.com/gin-gonic/gin"
 	"go.opentelemetry.io/contrib/instrumentation/github.com/gin-gonic/gin/otelgin"
 	"go.opentelemetry.io/otel/trace"
 )
+
+func DefaultGinEngine() *gin.Engine {
+	var middlewares []gin.HandlerFunc
+	middlewares = append(middlewares, TraceIdHandler())
+	middlewares = append(middlewares, wrapper.DefaultMiddlewares...)
+	return wrapper.NewEngine(middlewares...)
+}
 
 func TraceIdHandler() gin.HandlerFunc {
 	return func(c *gin.Context) {
