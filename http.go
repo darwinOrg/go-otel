@@ -7,6 +7,8 @@ import (
 	"net/http"
 	"strings"
 
+	dgctx "github.com/darwinOrg/go-common/context"
+	dghttp "github.com/darwinOrg/go-httpclient"
 	"go.opentelemetry.io/contrib/instrumentation/net/http/otelhttp"
 	"go.opentelemetry.io/otel/attribute"
 	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
@@ -32,6 +34,23 @@ func NewHTTPExporter(ctx context.Context, httpEndpoint, httpUrlPath string) *otl
 	return traceExporter
 }
 
+func NewOtelHttpClient(timeoutSeconds int64) *dghttp.DgHttpClient {
+	return newOtelHttpClient(dghttp.HttpTransport, timeoutSeconds)
+}
+
+func NewOtelHttp2Client(timeoutSeconds int64) *dghttp.DgHttpClient {
+	return newOtelHttpClient(dghttp.Http2Transport, timeoutSeconds)
+}
+
+func newOtelHttpClient(roundTripper http.RoundTripper, timeoutSeconds int64) *dghttp.DgHttpClient {
+	otelTransport := NewOtelHttpTransport(roundTripper)
+	hc := dghttp.NewHttpClient(otelTransport, timeoutSeconds)
+	hc.ResponseCallback = func(_ *dgctx.DgContext, response *http.Response) {
+		SetAttributesByResponse(response)
+	}
+	return hc
+}
+
 func NewOtelHttpTransport(rt http.RoundTripper) http.RoundTripper {
 	return otelhttp.NewTransport(rt, DefaultOtelHttpSpanNameFormatterOption)
 }
@@ -42,13 +61,9 @@ func NewOtelHttpTransportWithServiceName(rt http.RoundTripper, serviceName strin
 	}))
 }
 
-func ExtractOtelAttributesFromResponse(response *http.Response) {
-	if Tracer == nil {
-		return
-	}
-
+func SetAttributesByResponse(response *http.Response) {
 	if span := trace.SpanFromContext(response.Request.Context()); span.SpanContext().IsValid() {
-		attrs := ExtractOtelAttributesFromRequest(response.Request)
+		attrs := SetAttributesByRequest(response.Request)
 		if len(attrs) > 0 {
 			span.SetAttributes(attrs...)
 		}
@@ -56,7 +71,7 @@ func ExtractOtelAttributesFromResponse(response *http.Response) {
 	}
 }
 
-func ExtractOtelAttributesFromRequest(req *http.Request) []attribute.KeyValue {
+func SetAttributesByRequest(req *http.Request) []attribute.KeyValue {
 	var attrs []attribute.KeyValue
 
 	if len(req.Header) > 0 {
