@@ -7,8 +7,6 @@ import (
 
 	dgsys "github.com/darwinOrg/go-common/sys"
 	"go.opentelemetry.io/otel"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace"
-	"go.opentelemetry.io/otel/exporters/otlp/otlptrace/otlptracehttp"
 	"go.opentelemetry.io/otel/propagation"
 	"go.opentelemetry.io/otel/sdk/resource"
 	sdktrace "go.opentelemetry.io/otel/sdk/trace"
@@ -56,19 +54,6 @@ func NewResource(ctx context.Context, serviceName string) *resource.Resource {
 	}
 
 	return r
-}
-
-func NewHTTPExporter(ctx context.Context, httpEndpoint, httpUrlPath string) *otlptrace.Exporter {
-	traceExporter, err := otlptrace.New(ctx, otlptracehttp.NewClient(
-		otlptracehttp.WithEndpoint(httpEndpoint),
-		otlptracehttp.WithURLPath(httpUrlPath),
-		otlptracehttp.WithInsecure(),
-		otlptracehttp.WithCompression(1)))
-	if err != nil {
-		log.Fatalf("%s: %v", "Failed to create the OpenTelemetry trace exporter", err)
-	}
-
-	return traceExporter
 }
 
 func GetTracerServiceName() string {

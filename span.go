@@ -41,7 +41,7 @@ func SetSpanAttributes(ctx *dgctx.DgContext, mp map[string]string) {
 }
 
 func GetSpanByDgContext(ctx *dgctx.DgContext) trace.Span {
-	if ctx.GetInnerContext() == nil {
+	if !ctx.EnableTracer || ctx.GetInnerContext() == nil {
 		return nil
 	}
 
